@@ -39,6 +39,10 @@ function doPost(e) {
     })[0] || ss.getSheets()[0];   // fallback: primera pestaña
     if (!sheet) return json_({ ok: false, error: 'hoja sin pestañas' });
 
+    if (body.accion === 'actualizar') {
+      return actualizarFila_(sheet, body);
+    }
+
     // Columnas: A=fecha, B=actividad, C=(vacía), D=numero, E=descripcion
     var fila = [
       body.fecha || '',
@@ -54,6 +58,37 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
+}
+
+/**
+ * Actualiza una fila existente. Identifica la fila por número explícito
+ * (body.fila) o, si no viene, por coincidencia de body.fechaOriginal +
+ * body.numeroOriginal en las columnas A y D (útil porque la hoja se reordena
+ * en cada alta y el número de fila cambia). Solo pisa las columnas que
+ * vengan definidas en el body (actividad/numero/descripcion/fecha).
+ */
+function actualizarFila_(sheet, body) {
+  var fila = body.fila;
+  if (!fila) {
+    var last = sheet.getLastRow();
+    var datos = sheet.getRange(1, 1, last, 5).getValues();
+    for (var i = 0; i < datos.length; i++) {
+      if (String(datos[i][0]) === String(body.fechaOriginal) &&
+          String(datos[i][3]) === String(body.numeroOriginal)) {
+        fila = i + 1;
+        break;
+      }
+    }
+  }
+  if (!fila) return json_({ ok: false, error: 'no se encontró la fila a actualizar' });
+
+  if (body.fecha !== undefined) sheet.getRange(fila, 1).setValue(body.fecha);
+  if (body.actividad !== undefined) sheet.getRange(fila, 2).setValue(body.actividad);
+  if (body.numero !== undefined) sheet.getRange(fila, 4).setValue(body.numero);
+  if (body.descripcion !== undefined) sheet.getRange(fila, 5).setValue(body.descripcion);
+
+  ordenarPorFecha_(sheet);
+  return json_({ ok: true, fila: fila, actualizado: true });
 }
 
 /**

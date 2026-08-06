@@ -8,7 +8,7 @@ completa de qué falta rellenar y de dónde sacarlo.
 
 ## Contenido
 
-- `.claude/settings.json` — hooks (SessionStart, UserPromptSubmit) y permisos base.
+- `.claude/settings.json` — hooks (SessionStart, UserPromptSubmit, PostToolUse) y permisos base.
 - `.claude/agents/` — `explorador-microservicios`, `revisor-corevida`.
 - `.claude/skills/` — azure-devops-hu, conectar-bd-gaia, documento-maestro,
   evidencia-paso-a-paso, git-corevida, levantar-servicio-local, manual-tecnico,

@@ -20,6 +20,19 @@
     ]
   },
   "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/git-commit-detector.sh",
+            "timeout": 10,
+            "statusMessage": "Detectando commit..."
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [

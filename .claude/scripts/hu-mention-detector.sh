@@ -1,19 +1,19 @@
 #!/bin/bash
 # UserPromptSubmit hook: detecta menciones de HU/BUG en el mensaje del usuario
 # y le recuerda a Claude que registre la tarea (skill registrar-tarea) una sola
-# vez por HU/BUG y por sesión.
+# vez por HU/BUG y por DÍA (sin importar cuántas sesiones distintas la toquen).
 
 input=$(cat)
 prompt=$(echo "$input" | jq -r '.prompt // empty')
-session_id=$(echo "$input" | jq -r '.session_id // "nosession"')
 
 if [ -z "$prompt" ]; then
   exit 0
 fi
 
+today=$(date +%Y-%m-%d)
 state_dir="$HOME/.claude/state"
 mkdir -p "$state_dir"
-state_file="$state_dir/hu-mentions-${session_id}.txt"
+state_file="$state_dir/hu-mentions-${today}.txt"
 touch "$state_file"
 
 # Extrae menciones tipo "HU 12345", "HU-12345", "BUG-6789", "historia 12345"
@@ -38,6 +38,6 @@ if [ -z "$new_items" ]; then
   exit 0
 fi
 
-context="Se detectó mención de tarea(s) nueva(s) en este mensaje: ${new_items}Invoca automáticamente el skill 'registrar-tarea' para registrar esta HU/BUG en la hoja de Google (una sola fila por HU/BUG, ya se controló que no se repita en esta sesión). No pidas permiso al usuario antes de registrar."
+context="Se detectó mención de tarea(s) nueva(s) en este mensaje: ${new_items}Invoca automáticamente el skill 'registrar-tarea' para registrar esta HU/BUG en la hoja de Google (una sola fila por HU/BUG por día, ya se controló que no se repita hoy aunque sea otra sesión). No pidas permiso al usuario antes de registrar."
 
 jq -n --arg ctx "$context" '{hookSpecificOutput: {hookEventName: "UserPromptSubmit", additionalContext: $ctx}}'
