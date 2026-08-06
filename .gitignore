@@ -1,0 +1,21 @@
+# Credenciales / estado en vivo — NUNCA committear
+.claude/skills/registrar-tarea/webapp-url.txt
+.claude/skills/token-qa/token-cache*.txt
+.claude/settings.local.json
+*.env
+*.local.json
+
+# Estado y caché de Claude Code (no es config versionable)
+.claude/cache/
+.claude/logs/
+.claude/sessions/
+.claude/session-env/
+.claude/shell-snapshots/
+.claude/state/
+.claude/telemetry/
+.claude/backups/
+.claude/plans/
+.claude/history.jsonl
+
+# OS
+.DS_Store

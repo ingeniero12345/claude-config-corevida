@@ -1,0 +1,67 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export SPRING_PROFILES_ACTIVE=local)",
+      "Bash(export DB_URL='jdbc:postgresql://127.0.0.1:5438/ebdb?currentSchema=dbo&sslmode=require')",
+      "Bash(export DB_USER='generico.uat')",
+      "Bash(pkill -f \"app-service:bootRun\")",
+      "Bash(export SERVER_PORT=8087)",
+      "Bash(nohup ./gradlew --no-daemon :app-service:bootRun)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(export SPRING_PROFILES_ACTIVE=local SERVER_PORT=8087)",
+      "Bash(lsof -nP -iTCP:8087 -sTCP:LISTEN)",
+      "Bash(docker compose *)",
+      "Bash(open -a Docker)",
+      "Bash(java -version)",
+      "Bash(gradle -v)",
+      "Bash(gradle wrapper *)",
+      "Bash(./gradlew test *)",
+      "Bash(/usr/libexec/java_home -V)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/hu-mention-detector.sh",
+            "timeout": 10,
+            "statusMessage": "Detectando menciones de HU/BUG..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/contexto-gaia.sh",
+            "timeout": 15,
+            "statusMessage": "Cargando contexto del proyecto GAIA..."
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/pull-temascorporativos.sh",
+            "timeout": 120,
+            "statusMessage": "Actualizando repos de TemasCorporativos...",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/scripts/sync-dev-if-missed.sh",
+            "timeout": 120,
+            "statusMessage": "Verificando sync diario de dev...",
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "playwright@claude-plugins-official": true
+  },
+  "effortLevel": "medium",
+  "theme": "dark"
+}
