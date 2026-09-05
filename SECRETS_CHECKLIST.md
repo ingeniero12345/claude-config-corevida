@@ -14,6 +14,7 @@ AWS Secrets Manager, o pidiéndoselos a tu equipo.
 | `<SGDEA_USERNAME>` / `<SGDEA_PASSWORD>` | `skills/sgdea-uat/SKILL.md` | Usuario/password `client_credentials` de SGDEA UAT |
 | `<SARLAFT_CRM_USER>` / `<SARLAFT_CRM_PASSWORD>` | `skills/sarlaft-integraciones/SKILL.md` | Login del pool Cognito CRM (Red5G) |
 | `<SARLAFT_CUSTOMER_USER>` / `<SARLAFT_CUSTOMER_PASSWORD>` | `skills/sarlaft-integraciones/SKILL.md` | Login del pool Cognito Correo/Customer (Red5G) |
+| `<GITEA_USER>` / `<GITEA_PASSWORD>` | `skills/conectar-gitea/SKILL.md` | Usuario y contraseña del Gitea auto-hospedado (`gitea.nyx-gaia.com`) |
 | `<TU_SHEET_ID>` | `skills/registrar-tarea/apps-script.gs` | ID de tu Google Sheet de "actividades" |
 | `<UN_SECRETO_TUYO>` | `skills/registrar-tarea/apps-script.gs` | Secreto propio para autenticar tu Web App (invéntalo tú, no es un valor a recuperar) |
 | — (archivo excluido) | `skills/registrar-tarea/webapp-url.txt` | Recréalo tras desplegar tu Web App: línea 1 = URL `/exec`, línea 2 = tu secreto. No va en git. |

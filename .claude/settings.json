@@ -75,6 +75,11 @@
   "enabledPlugins": {
     "playwright@claude-plugins-official": true
   },
-  "effortLevel": "medium",
-  "theme": "dark"
+  "effortLevel": "high",
+  "theme": "dark",
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "medium"
+    }
+  }
 }

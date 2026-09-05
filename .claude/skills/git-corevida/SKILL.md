@@ -4,9 +4,10 @@ description: >-
   Convención git del proyecto CoreVida/Positiva para los repos backend/front:
   crear ramas SIEMPRE desde dev (validando primero que dev tenga lo último del
   remoto), naming de rama, formato de commit, uso de worktree cuando hay WIP
-  ajeno, y la regla de no mezclar cambios de otras tareas. Úsalo cada vez que
-  haya que crear una rama, generar comandos git, commitear o poner el repo al
-  día; o cuando el usuario diga "crea la rama", "genera los comandos git",
+  ajeno, la regla de no mezclar cambios de otras tareas, y validar en qué
+  ambientes (dev/qa/uat) ya está un cambio. Úsalo cada vez que haya que crear
+  una rama, generar comandos git, commitear, poner el repo al día, o cuando el
+  usuario diga "crea la rama", "genera los comandos git", "valida ambientes",
   "/git-corevida".
 ---
 
@@ -181,6 +182,40 @@ git push
 ## 7. Flujo de ambientes
 
 `dev → qa → uat → main`.
+
+## 7bis. "Validar ambientes" — confirmar en qué ambientes ya está un cambio
+
+Cuando el usuario diga **"valida ambientes"**, "¿ya está en qa/uat?", o equivalente,
+para el/los commit(s) de la tarea en curso: chequeo de solo lectura (no muta nada)
+por cada repo involucrado, contra `dev`, `qa` y `uat`.
+
+```bash
+REPO=/ruta/al/repo
+HASH=<hash del commit del fix en ese repo>
+
+git -C "$REPO" fetch origin dev qa uat 2>&1 | tail -5
+
+for rama in dev qa uat; do
+  if git -C "$REPO" branch -r --contains "$HASH" 2>/dev/null | grep -q "origin/$rama\$"; then
+    echo "$rama: SÍ"
+  else
+    echo "$rama: NO"
+  fi
+done
+```
+
+- Si un repo no tiene rama `uat` remota (algunos no la usan), el `fetch` de esa rama
+  simplemente no trae nada — no es error, se reporta "NO aplica" en vez de "NO".
+- Repetir por cada repo de la tarea (una tarea puede tocar varios repos a la vez,
+  ver ejemplo real: BUG 486180 tocó emisiones + siniestros + front + core) y
+  presentar el resultado como una tabla repo × ambiente.
+- **"Está en la rama" ≠ "está desplegado".** El merge a `dev`/`qa`/`uat` en git
+  no garantiza que el contenedor/pod real ya corrió el nuevo build — puede haber
+  desfase de despliegue (visto en BUG 486180: `dev-ms-core-emisiones` y
+  `dev-ms-core-core` tardaron en reflejar el cambio en el ambiente real de DEV
+  aunque el commit ya estaba mergeado). Si hace falta confirmar el comportamiento
+  real (no solo el git), probarlo contra el endpoint/URL real del ambiente — y
+  aclarar la diferencia entre "mergeado" y "desplegado" en la respuesta al usuario.
 
 ## Actualizar el repo (poner al día sin cambiar de rama)
 

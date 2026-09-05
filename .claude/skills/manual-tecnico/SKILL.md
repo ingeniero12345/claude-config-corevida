@@ -2,8 +2,9 @@
 name: manual-tecnico
 description: >-
   Genera o actualiza el Manual Tecnico (.docx) de una HU/bug dentro de
-  TemasCorporativos/anexos/{BUG|FEATURE}_{idAzure}_HU{###}_{descripcion}/ cada
-  vez que se va a hacer un commit: si es frontend, captura pantallazos por paso
+  TemasCorporativos/anexos/HU{###}-{idAzure}-{descripcion}/ (nombre completo
+  bajo 150 caracteres) cada vez que se va a hacer un commit: si es frontend,
+  captura pantallazos por paso
   con Playwright hasta la
   pantalla modificada; si es un servicio backend, arma ejemplos cURL con el
   token de token-qa y genera una coleccion Postman; siempre agrega explicacion
@@ -42,29 +43,33 @@ Rama `bugfix/<num>-<desc>` o `feature/<num>-HU<###>-<desc>` →
 
 ## 2. Carpeta por tarea (TODO el artefacto de la tarea vive ahí)
 
-**Desde 2026-08-05**, cada HU/bug tiene su propia carpeta dentro de `anexos/`, nombrada
+**Desde 2026-08-15**, cada HU/bug tiene su propia carpeta dentro de `anexos/`, nombrada
 con este formato fijo (ya NO se deriva del nombre de la rama):
 
 ```
-{BUG|FEATURE}_{idAzure}_HU{###}_{descripcion}
+HU{###}-{idAzure}-{descripcion}
 ```
 
-- `BUG` o `FEATURE`: literal, mayúsculas, según el tipo de tarea (mismo criterio que el
-  prefijo de rama en [[git-corevida]]: `bugfix/` → `BUG`, `feature/` → `FEATURE`).
-- `idAzure`: el ID numérico de Azure DevOps del work item que se está trabajando (el del
-  bug si es un bug, el de la HU si es una HU).
 - `HU{###}`: el número de la **Historia de Usuario a la que pertenece** la tarea — para
   una HU es su propio número; para un BUG es el número de la HU padre (trazabilidad,
   igual que ya aparece en los títulos reales de Azure DevOps, ej.
   `416_TRAN_SIN_HU860_...`). Si un bug no tiene HU padre clara, pregunta antes de omitir
   este segmento.
-- `descripcion`: **máximo 3 palabras**, separadas por guion (`-`), **todo en MAYÚSCULAS**
-  (igual que el resto del nombre de la carpeta), sin tildes ni caracteres especiales —
-  resume la tarea, no repite el número.
+- `idAzure`: el ID numérico de Azure DevOps del work item que se está trabajando (el del
+  bug si es un bug, el de la HU si es una HU).
+- `descripcion`: **sin límite de palabras** (ya no son 3 fijas) — en
+  **MAYÚSCULAS-CON-GUIONES**, sin tildes ni caracteres especiales, resume la tarea sin
+  repetir el número. El único límite es el del nombre completo de la carpeta: **máximo
+  150 caracteres en total** (`HU{###}-{idAzure}-{descripcion}` completo). Si la
+  descripción natural excede ese tope, recórtala manteniendo el sentido, no la trunques
+  a la fuerza en mitad de una palabra.
+- Ya **no se distingue BUG/FEATURE en el nombre de la carpeta** (antes era el primer
+  segmento) — esa distinción sigue viviendo en la rama de git (`bugfix/` vs `feature/`,
+  ver [[git-corevida]]) y en el análisis `.md` de la carpeta, no hace falta repetirla aquí.
 
 ```
 anexos/
-  {BUG|FEATURE}_{idAzure}_HU{###}_{descripcion}/
+  HU{###}-{idAzure}-{descripcion}/
     Manual Tecnico - {proyecto}_{modulo}_{hu}_{titulo-corto}.docx
     {proyecto}_{modulo}_{hu}_{titulo-corto} - paso1.png
     {proyecto}_{modulo}_{hu}_{titulo-corto} - paso2.png
@@ -79,17 +84,19 @@ anexos/
 
 **Desde 2026-08-04, todo backend lleva su Postman dentro de una subcarpeta `postman/`**
 propia de la carpeta de la tarea (ver §5.4) — no un `.postman_collection.json` suelto
-junto al `.docx`.
+junto al `.docx`. **Desde 2026-08-12 la URL de cada request va literal y se genera una
+request por ambiente** (carpetas DEV/QA/UAT dentro de la colección).
 
 Ejemplos:
 - HU865 (Azure #427216, rama `feature/427216-cargue-pruebas-reconsideracion-reclamacion`)
-  → carpeta `anexos/FEATURE_427216_HU865_CARGUE-PRUEBAS-RECONSIDERACION/`.
+  → carpeta `anexos/HU865-427216-CARGUE-PRUEBAS-RECONSIDERACION-RECLAMACION/`.
 - Bug 466519 sobre informes de siniestros, hijo de HU860 (rama
   `bugfix/466519-intermediario-informes-siniestros`) → carpeta
-  `anexos/BUG_466519_HU860_INTERMEDIARIO-INFORMES/`.
+  `anexos/HU860-466519-INTERMEDIARIO-INFORMES-SINIESTROS/`.
 
-**Migración**: las carpetas ya creadas con el formato viejo (nombre de rama, ej.
-`bugfix-466519-...` o `HU864/`) NO se renombran retroactivamente — el formato nuevo
+**Migración**: las carpetas ya creadas con formatos viejos (nombre de rama, ej.
+`bugfix-466519-...`, `HU864/`, o el formato intermedio `{BUG|FEATURE}_{idAzure}_HU{###}_{desc}`
+usado entre 2026-08-05 y 2026-08-14) NO se renombran retroactivamente — el formato nuevo
 aplica a toda carpeta que se cree de aquí en adelante.
 
 **Patrón único de nombres**: todo archivo de la tarea (docx, colección Postman, imagen,
@@ -167,7 +174,7 @@ migrar el formato.
 ## 4. Crear el esqueleto (solo si no existe)
 
 ```bash
-BRANCH_DIR="/Users/hernannieto/Documents/TemasCorporativos/anexos/bugfix-466519-intermediario-informes-siniestros"
+BRANCH_DIR="/Users/hernannieto/Documents/TemasCorporativos/anexos/HU762-<idAzure>-INTEGRACION-SARLAFT"
 mkdir -p "$BRANCH_DIR"
 python3 ~/.claude/skills/manual-tecnico/scaffold_manual.py \
   --proyecto 416 --modulo SIN --hu HU762 \
@@ -223,12 +230,12 @@ con lo nuevo.
    usando `{{token}}` como variable de colección (no el JWT literal). Ver §5.4 para la
    convención de ubicación y de ambientes (DEV/QA/UAT).
 
-### 5.4 Convención Postman: subcarpeta `postman/` + un environment por ambiente
+### 5.4 Convención Postman: subcarpeta `postman/` + una request por ambiente
 
-**Regla fija desde 2026-08-04, aplica a todo backend nuevo o modificado:** la colección
-Postman de cada HU/bug vive en su propia subcarpeta `postman/` dentro de la carpeta de
-la rama, y el ambiente (DEV/QA/UAT) se resuelve con **Postman Environments** — nunca con
-URLs o datos hardcodeados dentro de la colección.
+**Regla fija desde 2026-08-12** (reemplaza la convención anterior de `{{baseUrl}}`, ver
+"Historial" al final de esta sección): la colección Postman de cada HU/bug vive en su
+propia subcarpeta `postman/` dentro de la carpeta de la tarea, y **la URL de cada request
+va como cadena de texto literal, completa y legible — nunca con variables**.
 
 ```
 anexos/<carpeta-de-la-tarea>/postman/
@@ -238,35 +245,70 @@ anexos/<carpeta-de-la-tarea>/postman/
   {proyecto}_{modulo}_{hu}_{titulo} - Environment UAT.postman_environment.json
 ```
 
-**Colección**: todas las requests usan variables de ambiente, nunca literales:
-- `{{baseUrl}}{{apiPrefix}}/<path>` para la URL (concatenados tal cual en el campo `raw`;
-  Postman resuelve cada uno por separado). `apiPrefix` existe porque QA/UAT suelen tener
-  un gateway con reescritura (`/api/<servicio>` → interno) que un microservicio local
-  (`http://localhost:<puerto>`) no tiene — así la misma request sirve para ambos sin
-  editar el path a mano.
+#### URL literal, y un endpoint por ambiente
+
+La URL se escribe entera en el `raw` (y desglosada en `protocol`/`host`/`path`, como
+Postman guarda las URLs literales). Se genera **una request por cada ambiente** donde el
+servicio exista, agrupadas en carpetas por ambiente:
+
+```
+Coleccion
+├── DEV
+│   ├── 1. <caso>      → https://corevida-dev-v2.linktic.com/api/<servicio>/<path>
+│   └── 2. <caso>      → https://corevida-dev-v2.linktic.com/api/<servicio>/<path>
+├── QA
+│   ├── 1. <caso>      → https://corevida-qa-v2.linktic.com/api/<servicio>/<path>
+│   └── 2. <caso>      → https://corevida-qa-v2.linktic.com/api/<servicio>/<path>
+└── UAT
+    └── ...
+```
+
+Motivo: quien abre la colección ve de una a qué ambiente le está pegando cada request, sin
+tener que revisar qué environment tiene activo — y evita el error de correr contra el
+ambiente equivocado por dejar seleccionado otro environment.
+
+Reglas:
+- **Nunca** `{{baseUrl}}`, `{{apiPrefix}}` ni ninguna variable dentro de la URL.
+- Si un ambiente no está desplegado o no aplica, **no inventes su URL**: omite esa carpeta
+  y explica el motivo en la `description` de la colección.
+- Para pruebas contra un microservicio levantado en local (bootRun), agrega una carpeta
+  `LOCAL` con la URL literal `http://localhost:<puerto>/<contexto>/<path>`.
+- El dominio de cada ambiente debe estar **confirmado** (llamada real o gateway ya usado en
+  otra tarea), nunca deducido por analogía.
+
+#### Lo que SÍ sigue yendo en variables
+
+El resto no cambia — la URL es la única excepción:
 - `{{token}}` vía `auth: bearer` a nivel de colección (nunca el JWT literal).
-- Cualquier dato de prueba real (documento de tomador/asegurado, número de póliza, etc.)
-  va como variable (`{{tomadorNumeroDocumento}}`, `{{numeroPoliza}}`, ...), NUNCA
-  hardcodeado en el body — el valor real vive en el environment de cada ambiente, porque
-  un documento que tiene datos en QA puede no tener nada en DEV/UAT (ya paso con el bug
-  485590: hubo que buscar un tomador distinto por ambiente).
+- Los datos de prueba (documento de tomador/asegurado, número de póliza, plan, amparo…)
+  van como variables (`{{numeroPoliza}}`, `{{numeroDocumentoAsegurado}}`, …), NUNCA
+  hardcodeados en el body: un documento con datos en QA puede no tener nada en DEV/UAT (ya
+  pasó en el bug 485590, hubo que buscar un tomador distinto por ambiente).
+- Valores que deban ser únicos por ejecución (consecutivos, números de autorización) se
+  generan en un `prerequest` y se guardan con `pm.collectionVariables.set(...)`, para que
+  la colección sea repetible sin editarla a mano.
 
-**Un `.postman_environment.json` por ambiente**, con al menos:
-- `baseUrl`, `apiPrefix`, `token` (vacío o `secret`, nunca committeado con un JWT real).
-- Los datos de prueba reales verificados para ESE ambiente (documento, póliza, etc.).
-- Una variable `datoVerificadoEn` en texto libre: fecha + cómo se verificó (query SQL
-  directa, curl real, etc.) + qué dio. Si un ambiente no se pudo verificar (ej. UAT sin
-  acceso, o sin tiempo), pon `"PENDIENTE"` en los valores y explica el motivo en
-  `datoVerificadoEn` — nunca inventes un dato de prueba ni un dominio de `baseUrl` que no
-  hayas confirmado.
-- Si un ambiente no tiene gateway propio desplegado (ej. DEV corriendo solo local por
-  bootRun), `baseUrl` apunta al microservicio local (`http://localhost:<puerto>`) y
-  `apiPrefix` queda vacío — documenta esa decisión en `datoVerificadoEn`.
+#### Un `.postman_environment.json` por ambiente
 
-Este patrón (colección + environments, sin datos ni URLs hardcodeadas) es la convención
-a seguir en **todo desarrollo futuro** de la plataforma, no solo en este bug — así la
-misma colección sirve sin editar para probar en cualquier ambiente con solo cambiar el
-environment activo en Postman.
+Sigue habiendo uno por ambiente, pero ya **sin `baseUrl` ni `apiPrefix`** (ahora viven en
+la URL de cada request). Debe traer:
+- `token` (vacío o `secret`, nunca committeado con un JWT real).
+- Los datos de prueba reales verificados para ESE ambiente.
+- Una variable `datoVerificadoEn` en texto libre: fecha + cómo se verificó (query SQL,
+  curl real, etc.) + qué dio. Si un ambiente no se pudo verificar, pon `"PENDIENTE"` en
+  los valores y explica el motivo — **nunca inventes un dato de prueba**.
+
+#### Tests por request
+
+Cada request lleva su bloque `test` con los asserts del caso (status esperado y, si
+aplica, contenido de la respuesta), para poder correr la colección con el Runner o newman
+y ver en verde/rojo si el comportamiento es el esperado.
+
+#### Historial
+
+Hasta el 2026-08-11 la convención era la contraria (URL con `{{baseUrl}}{{apiPrefix}}` y
+una sola request sirviendo para todos los ambientes). Las colecciones viejas que sigan ese
+patrón no hay que migrarlas salvo que se toque esa tarea de nuevo.
 
 ### Frontend: pantallazos paso a paso (Playwright)
 
@@ -305,9 +347,10 @@ ya queda como archivo aparte — cita el nombre del archivo).
 - **Patrón de nombre único** para todo archivo de la carpeta (docx, Postman, imágenes,
   `.sql`, cualquier otro anexo): mismo prefijo base `{proyecto}_{modulo}_{hu}_{titulo}` +
   ` - <descriptor>.<ext>`. Nada de nombres genéricos sueltos.
-- **Postman en subcarpeta `postman/` + un environment por ambiente** (DEV/QA/UAT), sin
-  URLs ni datos de prueba hardcodeados en la colección — ver §5.4. Convención fija para
-  todo backend desde 2026-08-04.
+- **Postman en subcarpeta `postman/`**, con la **URL literal y una request por ambiente**
+  (carpetas DEV/QA/UAT), sin `{{baseUrl}}` ni variables en la URL; los datos de prueba y el
+  token sí van en variables, con un environment por ambiente — ver §5.4. Convención fija
+  para todo backend desde 2026-08-12.
 - **Nunca sobrescribas** contenido ya puesto por otra persona (tabla Revisó/Aprobó,
   observaciones manuales) — solo agrega o completa lo pendiente.
 - El manual **no reemplaza** el commit — es un artefacto adicional. Sigue [[git-corevida]]

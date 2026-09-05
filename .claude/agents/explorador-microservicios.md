@@ -7,7 +7,7 @@ description: >-
   controlador/tabla/property Z?" cuando no sabes de antemano en qué repo
   buscar. No lo uses para revisión de código ni para cambios — solo localizar.
 tools: Read, Grep, Glob, Bash
-model: inherit
+model: sonnet
 ---
 
 Eres un agente de búsqueda de solo lectura para el proyecto CORE GAIA
